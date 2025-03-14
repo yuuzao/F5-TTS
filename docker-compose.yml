@@ -1,0 +1,14 @@
+services:
+  f5-tts:
+    image: registry.rwx.cat/f5tts:0.2
+    container_name: f5-tts
+    restart: always
+    ports:
+      - "38100:38100"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]

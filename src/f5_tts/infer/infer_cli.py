@@ -266,7 +266,9 @@ elif model == "E2TTS_Base":
     ckpt_step = 1200000
 
 if not ckpt_file:
-    ckpt_file = str(cached_path(f"hf://SWivid/{repo_name}/{model}/model_{ckpt_step}.{ckpt_type}"))
+    hf = f"hf://SWivid/{repo_name}/{model}/model_{ckpt_step}.{ckpt_type}"
+    print(f"ckpt_file: {hf}")
+    ckpt_file = str(cached_path(hf))
 
 print(f"Using {model}...")
 ema_model = load_model(model_cls, model_cfg.arch, ckpt_file, mel_spec_type=vocoder_name, vocab_file=vocab_file)
@@ -352,4 +354,9 @@ def main():
 
 
 if __name__ == "__main__":
+    import time
+    print("Starting inference...")
+    start_time = time.time()
     main()
+    end_time = time.time()
+    print(f"Inference completed in {end_time - start_time} seconds")
