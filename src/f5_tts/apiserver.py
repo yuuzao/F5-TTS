@@ -154,13 +154,14 @@ class F5TTS:
 
 
 
-def infer(text: str, f5tts: F5TTS, speed: float = 1.0):
+def infer(text: str, f5tts: F5TTS, speed: float = 1.0, duration: float = None):
     wav, sr, spec = f5tts.infer(
         ref_file=str(files("f5_tts").joinpath("infer/examples/basic/eng.wav")),
         ref_text="",
         gen_text=text,
         seed=None,
         speed=speed,
+        fix_duration=duration,
     )
     return wav, sr, spec
 
@@ -199,6 +200,7 @@ import time
 class TTSRequest(BaseModel):
     text: str
     speed: float
+    duration: float
 
 app = fastapi.FastAPI()
 f5tts = F5TTS()
@@ -207,7 +209,9 @@ f5tts = F5TTS()
 def zero_shot(request: TTSRequest):
     text = request.text
     start_time = time.time()
-    wav, sr, spec = infer(text, f5tts, request.speed)
+    speed = request.speed if request.speed else 1.0
+    duration = request.duration if request.duration else None
+    wav, sr, spec = infer(text, f5tts, speed=speed, duration=duration)
     end_time = time.time()
     print(f"inference time: {end_time - start_time}")
     return StreamingResponse(export_wav(wav, sr, f5tts.target_sample_rate), media_type="audio/wav")
