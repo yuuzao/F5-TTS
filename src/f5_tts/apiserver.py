@@ -152,10 +152,12 @@ class F5TTS:
 
         return wav, sr, spec
 
+
+
 def infer(text: str, f5tts: F5TTS, speed: float = 1.0):
     wav, sr, spec = f5tts.infer(
         ref_file=str(files("f5_tts").joinpath("infer/examples/basic/eng.wav")),
-        ref_text="And at the time I thought that so far as he was concerned it was a true story. He told it me with      such a direct simplicity of conviction that I could not do otherwise than believe in him.",
+        ref_text="",
         gen_text=text,
         seed=None,
         speed=speed,
@@ -169,10 +171,29 @@ def export_wav(wav, sr, sample_rate):
     file_stream.seek(0)
     return file_stream
 
+import torch
+import torchaudio
+def get_ref_audio_len():
+    ref_file=str(files("f5_tts").joinpath("infer/examples/basic/eng.wav"))
+    (audio, sr) = torchaudio.load(ref_file, format="wav")
+    if audio.shape[0] > 1:
+        audio = torch.mean(audio, dim=0, keepdim=True)
+    rms = torch.sqrt(torch.mean(torch.square(audio)))
+    if rms < 0.1:
+        audio = audio * 0.1 / rms
+    if sr != 24000:
+        resampler = torchaudio.transforms.Resample(sr, 24000)
+        audio = resampler(audio)
+    audio = audio.to("cuda")
+    hop_length = 256
+    token_len = audio.shape[-1] // hop_length
+    print(f"ref_token_len: {token_len}")
+    return token_len
+
 from pydantic import BaseModel
 import fastapi
 import uvicorn
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse, JSONResponse
 import time
 
 class TTSRequest(BaseModel):
@@ -190,6 +211,11 @@ def zero_shot(request: TTSRequest):
     end_time = time.time()
     print(f"inference time: {end_time - start_time}")
     return StreamingResponse(export_wav(wav, sr, f5tts.target_sample_rate), media_type="audio/wav")
+
+@app.get("/ref_token_len")
+def ref_audio_len():
+    token_len = get_ref_token_len()
+    return JSONResponse({"ref_audio_len": token_len})
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=38100)
