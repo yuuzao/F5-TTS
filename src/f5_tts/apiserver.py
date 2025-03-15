@@ -214,7 +214,7 @@ def zero_shot(request: TTSRequest):
 
 @app.get("/ref_token_len")
 def ref_audio_len():
-    token_len = get_ref_token_len()
+    token_len = get_ref_audio_len()
     return JSONResponse({"ref_audio_len": token_len})
 
 if __name__ == "__main__":

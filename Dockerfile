@@ -7,8 +7,6 @@ COPY . .
 RUN uv venv --python 3.10
 RUN --mount=type=cache,target=/root/.cache/uv uv pip install -e .
 
-RUN chmod +x entrypoint.sh
+EXPOSE 38100
 
-EXPOSE 38100 38101
-
-CMD ["./entrypoint.sh"]
+CMD ["uv", "run", "uvicorn", "f5_tts.apiserver:app", "--host", "0.0.0.0", "--port", "38100"]
