@@ -469,6 +469,7 @@ def infer_batch_process(
             gen_text_len = len(gen_text.encode("utf-8"))
             duration = ref_audio_len + int(ref_audio_len / ref_text_len * gen_text_len / local_speed)
 
+        print(f"ref_text_len: {ref_text_len}, gen_text_len: {gen_text_len}, duration: {duration}, local_speed: {local_speed}, ref_audio_len: {ref_audio_len}, hop_length: {hop_length}, sample_rate: {target_sample_rate}")
         # inference
         with torch.inference_mode():
             generated, _ = model_obj.sample(
